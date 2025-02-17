@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17.5)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -27,5 +27,5 @@ target_link_libraries(iterator_test
 )
 
 include(GoogleTest)
-gtest_discover_tests(iterator_test)
+add_test(iterator_gtest iterator_test)
 

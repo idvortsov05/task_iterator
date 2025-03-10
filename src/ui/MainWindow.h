@@ -30,8 +30,10 @@ private:
     Ui::MainWindow* m_ui;
     QString dir_path;
     Controller *controller;
-
-    void setupListWidget(const QMap<QString, int> &files) const;
+    std::vector<QString> m_selectedFilters;
+    
+    void updateVisibleApplyResetFiltersBtn();
+    void setupListWidget(const QMap<QString, int> &files);
     void setupTable() const;
     void setTable(const QMap<QString, int> &files);
     void updateChart(const QMap<QString, int> & files);

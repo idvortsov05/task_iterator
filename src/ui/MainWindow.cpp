@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QCheckBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
 {
@@ -22,12 +23,60 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     QObject::connect(m_ui->pushButton_reset_filters, &QPushButton::clicked, this, &MainWindow::onPushButtonResetFilters);
     QObject::connect(controller, &Controller::resultsReady, this, &MainWindow::onControllerResultsInfo);
 
+    m_ui->horizontalFrame_graphics->setVisible(false);
+
+    m_ui->scrollAreaWidgetContents->setLayout(m_ui->gridLayout_typeFiles);
+
+    m_ui->groupBox_typeFiles->setLayout(m_ui->verticalLayout_typeFilesScrollArea);
+    m_ui->groupBox_typeFiles->setVisible(false);
+
     setupTable();
-    showFullScreen();
+    // showFullScreen();
+
+    m_ui->listWidget_filters->setVisible(false);
+    
+    updateVisibleApplyResetFiltersBtn();
 }
 
-void MainWindow::setupListWidget(const QMap<QString, int> &files) const
+void MainWindow::updateVisibleApplyResetFiltersBtn()
 {
+    auto isVisible = true;
+
+    if(m_selectedFilters.empty())
+        isVisible = false;
+
+    m_ui->pushButton_apply_filters->setVisible(isVisible);
+    m_ui->pushButton_reset_filters->setVisible(isVisible);
+}
+
+void MainWindow::setupListWidget(const QMap<QString, int> &files)
+{
+    m_ui->groupBox_typeFiles->setVisible(true);
+    const auto countFiles = files.count();
+
+    auto rowId = 0;
+    auto colId = 0;
+
+    for(auto it = files.begin(), endIt = files.end(); it != endIt; ++it)
+    {
+        const auto filterCheckBox = new QCheckBox(it.key());
+        connect(filterCheckBox, &QCheckBox::stateChanged, [this, filterCheckBox](int state){
+            if(state == Qt::Checked)
+                m_selectedFilters.push_back(filterCheckBox->text());
+            else
+                m_selectedFilters.erase(std::find(m_selectedFilters.begin(), m_selectedFilters.end(), filterCheckBox->text()));
+
+            updateVisibleApplyResetFiltersBtn();
+        });
+        m_ui->gridLayout_typeFiles->addWidget(filterCheckBox, rowId, colId);
+        ++colId;
+        if(colId == 3)
+        {
+            colId = 0;
+            ++rowId;
+        }
+    }
+
     for (auto it = files.begin(); it != files.end(); ++it)
     {
         auto *item = new QListWidgetItem(it.key());
@@ -107,7 +156,7 @@ void MainWindow::onPushButtonApplyFilters()
         }
     }
 
-    if (checked.isEmpty())
+    if (m_selectedFilters.empty())
     {
         QMessageBox::warning(this, "Предупреждение", "Выберите хотя-бы 1 тип файла!");
         return;
@@ -118,7 +167,7 @@ void MainWindow::onPushButtonApplyFilters()
 
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        if (checked.contains(it.key()))
+        if (std::find(m_selectedFilters.begin(), m_selectedFilters.end(), it.key()) != m_selectedFilters.end())
         {
             result[it.key()] = it.value();
             count += it.value();
@@ -133,6 +182,7 @@ void MainWindow::onPushButtonApplyFilters()
 
 void MainWindow::onPushButtonResetFilters()
 {
+    m_selectedFilters.clear();
     QMap<QString, int> files = controller->getFiles();
 
     if (files.empty())
@@ -166,6 +216,7 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
     clear_layout();
 
+    m_ui->horizontalFrame_graphics->setVisible(true);
     auto *newLayout = new QVBoxLayout(m_ui->horizontalFrame_graphics);
     m_ui->horizontalFrame_graphics->setLayout(newLayout);
 
@@ -173,7 +224,11 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        *set << it.value();
+        if(m_selectedFilters.empty())
+            *set << it.value();
+        else
+            if(std::find(m_selectedFilters.begin(), m_selectedFilters.end(), it.key()) != m_selectedFilters.end()) 
+                *set << it.value();
     }
 
     auto *series = new QBarSeries();
@@ -187,7 +242,11 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
     QStringList categories;
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        categories << it.key();
+        if(m_selectedFilters.empty())
+            *set << it.value();
+        else
+            if(std::find(m_selectedFilters.begin(), m_selectedFilters.end(), it.key()) != m_selectedFilters.end()) 
+            categories << it.key();            
     }
 
     auto *axisX = new QBarCategoryAxis();
@@ -221,6 +280,7 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
 void MainWindow::clear_layout()
 {
+    m_ui->horizontalFrame_graphics->setVisible(false);
     auto *oldLayout = m_ui->horizontalFrame_graphics->layout();
     if (oldLayout)
     {

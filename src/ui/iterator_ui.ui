@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
-    <height>505</height>
+    <width>834</width>
+    <height>608</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>10</y>
       <width>761</width>
-      <height>528</height>
+      <height>591</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_main">
@@ -33,6 +33,12 @@
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QPushButton" name="pushButton_iterator_dir">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>14</pointsize>
@@ -141,7 +147,60 @@ QPushButton{border: 2px solid black}</string>
           </widget>
          </item>
          <item>
+          <widget class="QGroupBox" name="groupBox_typeFiles">
+           <property name="title">
+            <string>Типы файлов</string>
+           </property>
+           <widget class="QWidget" name="verticalLayoutWidget">
+            <property name="geometry">
+             <rect>
+              <x>20</x>
+              <y>-10</y>
+              <width>711</width>
+              <height>73</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_typeFilesScrollArea">
+             <item>
+              <widget class="QScrollArea" name="scrollArea">
+               <property name="widgetResizable">
+                <bool>true</bool>
+               </property>
+               <widget class="QWidget" name="scrollAreaWidgetContents">
+                <property name="geometry">
+                 <rect>
+                  <x>0</x>
+                  <y>0</y>
+                  <width>707</width>
+                  <height>69</height>
+                 </rect>
+                </property>
+                <widget class="QWidget" name="gridLayoutWidget">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>711</width>
+                   <height>61</height>
+                  </rect>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_typeFiles"/>
+                </widget>
+               </widget>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item>
           <widget class="QListWidget" name="listWidget_filters">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="styleSheet">
             <string notr="true">QListWidget {border: 1px solid black}</string>
            </property>
@@ -149,6 +208,12 @@ QPushButton{border: 2px solid black}</string>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_apply_filters">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="font">
             <font>
              <pointsize>14</pointsize>
@@ -167,6 +232,12 @@ QPushButton {background-color: rgb(0, 144, 44)}</string>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_reset_filters">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="styleSheet">
             <string notr="true">QPushButton {border: 2px solid black}
 QPushButton {background-color: rgb(244, 0, 33)}</string>
@@ -192,6 +263,12 @@ QPushButton {background-color: rgb(244, 0, 33)}</string>
          </item>
          <item>
           <widget class="QTableWidget" name="tableWidget">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>

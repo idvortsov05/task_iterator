@@ -9,6 +9,7 @@
 #include <QFileDialog>
 #include <QDebug>
 #include <QMessageBox>
+#include <QCheckBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::MainWindow)
 {
@@ -22,18 +23,51 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), m_ui(new Ui::Main
     QObject::connect(m_ui->pushButton_reset_filters, &QPushButton::clicked, this, &MainWindow::onPushButtonResetFilters);
     QObject::connect(controller, &Controller::resultsReady, this, &MainWindow::onControllerResultsInfo);
 
+    m_ui->horizontalFrame_graphics->hide();
+    m_ui->scrollAreaWidgetContents->setLayout(m_ui->gridLayout_typeFiles);
+    m_ui->groupBox_typeFiles->setLayout(m_ui->verticalLayout_typeFilesScrollArea);
+    m_ui->groupBox_typeFiles->hide();
+
     setupTable();
-    showFullScreen();
+    checkVisibleButtons();
 }
 
-void MainWindow::setupListWidget(const QMap<QString, int> &files) const
+void MainWindow::checkVisibleButtons()
 {
+    bool isVisible = !m_selectedFilters.empty();
+
+    m_ui->pushButton_apply_filters->setVisible(isVisible);
+    m_ui->pushButton_reset_filters->setVisible(isVisible);
+}
+
+void MainWindow::setupListWidget(const QMap<QString, int> &files)
+{
+    m_ui->groupBox_typeFiles->show();
+
+    QLayout *layout = m_ui->groupBox_typeFiles->layout();
+    if (layout)
+    {
+        QLayoutItem *item;
+        while ((item = layout->takeAt(0)))
+        {
+            delete item->widget();
+            delete item;
+        }
+    }
+
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        auto *item = new QListWidgetItem(it.key());
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(Qt::Unchecked);
-        m_ui->listWidget_filters->addItem(item);
+        auto *checkBox = new QCheckBox(it.key(), m_ui->groupBox_typeFiles);
+        m_ui->verticalLayout_typeFilesScrollArea->addWidget(checkBox);
+
+        connect(checkBox, &QCheckBox::stateChanged, [this, checkBox](int state)
+        {
+            if (state == Qt::Checked)
+                m_selectedFilters.insert(checkBox->text());
+            else
+                m_selectedFilters.remove(checkBox->text());
+            checkVisibleButtons();
+        });
     }
 }
 
@@ -96,34 +130,25 @@ void MainWindow::setTable(const QMap<QString, int> &files)
 
 void MainWindow::onPushButtonApplyFilters()
 {
-    auto count = 0;
-    QSet<QString> checked;
-
-    for (int i = 0; i < m_ui->listWidget_filters->count(); i++)
+    if (m_selectedFilters.isEmpty())
     {
-        if (m_ui->listWidget_filters->item(i)->checkState() == Qt::Checked)
-        {
-            checked.insert(m_ui->listWidget_filters->item(i)->text());
-        }
-    }
-
-    if (checked.isEmpty())
-    {
-        QMessageBox::warning(this, "Предупреждение", "Выберите хотя-бы 1 тип файла!");
+        QMessageBox::warning(this, "Предупреждение", "Выберите хотя бы 1 тип файла!");
         return;
     }
 
     QMap<QString, int> files = controller->getFiles();
     QMap<QString, int> result;
+    int count = 0;
 
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        if (checked.contains(it.key()))
+        if (m_selectedFilters.contains(it.key()))
         {
             result[it.key()] = it.value();
             count += it.value();
         }
     }
+
     setTable(result);
     updateChart(result);
 
@@ -133,22 +158,26 @@ void MainWindow::onPushButtonApplyFilters()
 
 void MainWindow::onPushButtonResetFilters()
 {
-    QMap<QString, int> files = controller->getFiles();
+    m_selectedFilters.clear();
 
+    QMap<QString, int> files = controller->getFiles();
     if (files.empty())
     {
         QMessageBox::warning(this, "Ошибка", "Нет данных для отображения в таблице!");
         return;
     }
 
-    for (int i = 0; i < m_ui->listWidget_filters->count(); i++)
+    QLayout *layout = m_ui->groupBox_typeFiles->layout();
+    if (layout)
     {
-        QListWidgetItem *item = m_ui->listWidget_filters->item(i);
-        if (item)
+        for (int i = 0; i < layout->count(); ++i)
         {
-            item->setCheckState(Qt::Unchecked);
+            QCheckBox *checkBox = qobject_cast<QCheckBox*>(layout->itemAt(i)->widget());
+            if (checkBox)
+                checkBox->setChecked(false);
         }
     }
+
     m_ui->label_count_sorted_files->setText("");
     QMessageBox::information(this, "Информация", "Фильтры успешно сброшены!");
     setTable(files);
@@ -166,6 +195,7 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
     clear_layout();
 
+    m_ui->horizontalFrame_graphics->show();
     auto *newLayout = new QVBoxLayout(m_ui->horizontalFrame_graphics);
     m_ui->horizontalFrame_graphics->setLayout(newLayout);
 
@@ -173,7 +203,11 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        *set << it.value();
+        if(m_selectedFilters.empty())
+            *set << it.value();
+        else
+        if(std::find(m_selectedFilters.begin(), m_selectedFilters.end(), it.key()) != m_selectedFilters.end())
+            *set << it.value();
     }
 
     auto *series = new QBarSeries();
@@ -187,7 +221,11 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
     QStringList categories;
     for (auto it = files.begin(); it != files.end(); ++it)
     {
-        categories << it.key();
+        if(m_selectedFilters.empty())
+            *set << it.value();
+        else
+        if(std::find(m_selectedFilters.begin(), m_selectedFilters.end(), it.key()) != m_selectedFilters.end())
+            categories << it.key();
     }
 
     auto *axisX = new QBarCategoryAxis();
@@ -221,6 +259,7 @@ void MainWindow::updateChart(const QMap<QString, int> &files)
 
 void MainWindow::clear_layout()
 {
+    m_ui->horizontalFrame_graphics->hide();
     auto *oldLayout = m_ui->horizontalFrame_graphics->layout();
     if (oldLayout)
     {

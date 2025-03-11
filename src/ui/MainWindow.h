@@ -7,6 +7,7 @@
 
 #include <QMainWindow>
 #include <QObject>
+#include <QCheckBox>
 
 namespace Ui
 {
@@ -30,8 +31,10 @@ private:
     Ui::MainWindow* m_ui;
     QString dir_path;
     Controller *controller;
+    QSet<QString> m_selectedFilters;
 
-    void setupListWidget(const QMap<QString, int> &files) const;
+    void checkVisibleButtons();
+    void setupListWidget(const QMap<QString, int> &files);
     void setupTable() const;
     void setTable(const QMap<QString, int> &files);
     void updateChart(const QMap<QString, int> & files);

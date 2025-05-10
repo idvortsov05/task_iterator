@@ -2,7 +2,7 @@
 
 #include <QDirIterator>
 #include <QDebug>
-#include <Qstring>
+#include <QString>
 
 FileIterator::FileIterator(QObject *parent) : QObject(parent) {}
 
@@ -16,13 +16,20 @@ void FileIterator::iterate(const QString &path)
 
     clearIterator();
 
-    QDirIterator it(path, QDirIterator::Subdirectories);
+    QDirIterator it(path, QDir::AllEntries | QDir::Hidden | QDir::System,
+                    QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     timer.start();
 
     while (it.hasNext())
     {
         it.next();
         QFileInfo fileInfo = it.fileInfo();
+
+        if (!fileInfo.isReadable())
+        {
+            qWarning() << "No read access to:" << fileInfo.filePath();
+            continue;
+        }
 
         if (fileInfo.isFile())
         {
@@ -40,7 +47,7 @@ void FileIterator::iterate(const QString &path)
 
 void FileIterator::analyzeFile(const QFileInfo &file)
 {
-    QString extension = file.suffix();
+    QString extension = file.suffix().toLower();
     if (file.suffix().isEmpty())
     {
        extension = "no_extension";

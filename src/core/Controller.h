@@ -16,12 +16,12 @@ public:
     ~Controller() noexcept override;
 
 public slots:
-    void handleResults(int size_dir, int count_files, int count_dirs, QMap<QString, int> newfiles, qint64 time);
+    void handleResults(quint64 size_dir, int count_files, int count_dirs, QMap<QString, int>& newfiles, qint64 time);
     void iterate(const QString &path);
 
 signals:
     void operate(const QString &);
-    void resultsReady(int size_dir, int count_files, int count_dirs, QMap<QString, int> newfiles, qint64 time);
+    void resultsReady(quint64 size_dir, int count_files, int count_dirs, QMap<QString, int>& newfiles, qint64 time);
 
 private:
     QThread iteratorThread;

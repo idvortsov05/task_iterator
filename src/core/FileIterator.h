@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QFileInfo>
 #include <QElapsedTimer>
-#include <Qmap>
+#include <QMap>
 
 class FileIterator : public QObject
 {
@@ -17,12 +17,12 @@ public slots:
     void iterate(const QString &path);
 
 signals:
-    void iterationFinished(int size_dir, int count_files, int count_dirs, QMap<QString, int> file_types_count, qint64 elapsedTime);
+    void iterationFinished(qint64 size_dir, int count_files, int count_dirs, QMap<QString, int>& file_types_count, qint64 elapsedTime);
 
 private:
     QMap<QString, int> file_types_count;
-    static constexpr int BYTES_IN_MB = 1024 * 1024;
-    int total_size = 0;
+    static constexpr qint64 BYTES_IN_MB = 1024 * 1024;
+    qint64 total_size = 0;
     int count_files = 0;
     int count_dirs = 0;
     QElapsedTimer timer;

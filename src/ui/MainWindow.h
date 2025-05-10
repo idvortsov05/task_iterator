@@ -1,14 +1,20 @@
 #ifndef ITERATOR_TASK_MAINWINDOW_H
 #define ITERATOR_TASK_MAINWINDOW_H
 
-#include "iterator_ui.h"
-#include "../core/FileIterator.h"
-#include "../core/Controller.h"
+#include "ui_iterator_ui.h"
+#include "core/FileIterator.h"
+#include "core/Controller.h"
 
 #include <QMainWindow>
 #include <QObject>
+#include <QCheckBox>
 
-class MainWindow : public QMainWindow, private Ui_MainWindow
+namespace Ui
+{
+    class MainWindow;
+}
+
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
@@ -19,16 +25,20 @@ public slots:
     void onPushButtonIterate();
     void onPushButtonApplyFilters();
     void onPushButtonResetFilters();
-    void onControllerResultsInfo(int size_dir, int count_files, int count_dirs, QMap<QString, int> files, qint64 time);
+    void onControllerResultsInfo(quint64 size_dir, int count_files, int count_dirs, QMap<QString, int>& files, qint64 time);
 
 private:
+    Ui::MainWindow* m_ui;
     QString dir_path;
     Controller *controller;
+    QSet<QString> m_selectedFilters;
 
-    void setupListWidget(const QMap<QString, int> &files) const;
+    void checkVisibleButtons();
+    void setupListWidget(const QMap<QString, int> &files);
     void setupTable() const;
     void setTable(const QMap<QString, int> &files);
     void updateChart(const QMap<QString, int> & files);
+    void clear_layout();
 };
 
 #endif //ITERATOR_TASK_MAINWINDOW_H
